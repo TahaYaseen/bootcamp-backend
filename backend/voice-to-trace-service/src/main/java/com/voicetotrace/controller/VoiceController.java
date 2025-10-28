@@ -23,7 +23,7 @@ public class VoiceController {
     @Autowired
     private AudioRecordRepository audioRecordRepository;
 
-    private static final String UPLOAD_DIR = "uploads";
+    private static final String UPLOAD_DIR = System.getProperty("user.dir") + "/backend/voice-to-trace-service/uploads";
 
     @PostMapping("/record")
     public ResponseEntity<Object> uploadAudio(
@@ -66,13 +66,33 @@ public class VoiceController {
     }
 
     @Autowired
+    private com.voicetotrace.service.TextToJsonService textToJsonService;
+
+    @PostMapping("/analyze/{transcriptId}")
+    public ResponseEntity<Object> analyzeTranscript(@PathVariable String transcriptId) {
+        try {
+            var optionalTranscript = speechTranscriptRepository.findById(transcriptId);
+            if (optionalTranscript.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Transcript not found");
+            }
+            var transcript = optionalTranscript.get();
+            var jsonResult = textToJsonService.convertToJson(transcript.getText());
+            return ResponseEntity.ok(jsonResult);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error analyzing transcript: " + e.getMessage());
+        }
+    }
+
+    @Autowired
     private com.voicetotrace.service.SpeechToTextService speechToTextService;
 
     @Autowired
     private com.voicetotrace.repository.SpeechTranscriptRepository speechTranscriptRepository;
 
     @PostMapping("/transcribe")
-    public ResponseEntity<Object> transcribeAudio(@RequestParam("recordId") Long recordId) {
+    public ResponseEntity<Object> transcribeAudio(@RequestParam("recordId") String recordId) {
         try {
             java.util.Optional<com.voicetotrace.model.AudioRecord> optional = audioRecordRepository.findById(recordId);
             if (optional.isEmpty()) {
@@ -99,6 +119,40 @@ public class VoiceController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error during transcription: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/transcripts")
+    public ResponseEntity<Object> getAllTranscripts() {
+        try {
+            return ResponseEntity.ok(speechTranscriptRepository.findAll());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching transcripts: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/transcripts/{id}")
+    public ResponseEntity<Object> updateTranscript(
+            @PathVariable String id,
+            @RequestBody Map<String, String> requestBody) {
+        try {
+            var optionalTranscript = speechTranscriptRepository.findById(id);
+            if (optionalTranscript.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Transcript not found");
+            }
+
+            var transcript = optionalTranscript.get();
+            transcript.setText(requestBody.get("text"));
+            speechTranscriptRepository.save(transcript);
+
+            return ResponseEntity.ok(transcript);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error updating transcript: " + e.getMessage());
         }
     }
 }

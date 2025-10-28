@@ -1,0 +1,42 @@
+# Build and IDE directories
+target/
+.idea/
+out/
+
+# Logs
+*.log
+
+# Environment and credentials
+*.env
+*.key
+*.pem
+*.json
+*.credentials
+
+# Node and frontend dependencies (if any build assets exist)
+node_modules/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+.DS_Store
+Thumbs.db
+
+# Compiled Java binaries
+*.class
+
+# Maven wrapper files
+.mvn/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Uploads and generated files
+uploads/
+nohup.out
+
+# Coverage and reports
+coverage/
+test-output/
+
+# System files
+.vscode/

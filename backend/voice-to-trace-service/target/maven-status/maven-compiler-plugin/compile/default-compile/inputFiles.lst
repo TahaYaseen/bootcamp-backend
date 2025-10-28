@@ -7,6 +7,7 @@
 /home/tahay/Tech/Project/Dew/iTrade/bootcamp/backend/voice-to-trace-service/src/main/java/com/voicetotrace/Application.java
 /home/tahay/Tech/Project/Dew/iTrade/bootcamp/backend/voice-to-trace-service/src/main/java/com/voicetotrace/model/SpeechTranscript.java
 /home/tahay/Tech/Project/Dew/iTrade/bootcamp/backend/voice-to-trace-service/src/main/java/com/voicetotrace/repository/AudioRecordRepository.java
+/home/tahay/Tech/Project/Dew/iTrade/bootcamp/backend/voice-to-trace-service/src/main/java/com/voicetotrace/service/TextToJsonService.java
 /home/tahay/Tech/Project/Dew/iTrade/bootcamp/backend/voice-to-trace-service/src/main/java/com/voicetotrace/service/SpeechToTextService.java
 /home/tahay/Tech/Project/Dew/iTrade/bootcamp/backend/voice-to-trace-service/src/main/java/com/voicetotrace/security/JwtAuthFilter.java
 /home/tahay/Tech/Project/Dew/iTrade/bootcamp/backend/voice-to-trace-service/src/main/java/com/voicetotrace/controller/VoiceController.java

@@ -1,15 +1,14 @@
 package com.voicetotrace.model;
 
-import javax.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "audio_records")
+@Document(collection = "audio_records")
 public class AudioRecord {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     private Long userId;
     private String filePath;
@@ -25,7 +24,7 @@ public class AudioRecord {
         this.createdAt = LocalDateTime.now();
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 

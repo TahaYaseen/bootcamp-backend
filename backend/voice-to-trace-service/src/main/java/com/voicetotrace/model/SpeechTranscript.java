@@ -1,17 +1,16 @@
 package com.voicetotrace.model;
 
-import javax.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "speech_transcripts")
+@Document(collection = "speech_transcripts")
 public class SpeechTranscript {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    private Long audioRecordId;
+    private String audioRecordId;
     private String text;
     private float confidence;
     private LocalDateTime createdAt;
@@ -20,22 +19,22 @@ public class SpeechTranscript {
         this.createdAt = LocalDateTime.now();
     }
 
-    public SpeechTranscript(Long audioRecordId, String text, float confidence) {
+    public SpeechTranscript(String audioRecordId, String text, float confidence) {
         this.audioRecordId = audioRecordId;
         this.text = text;
         this.confidence = confidence;
         this.createdAt = LocalDateTime.now();
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public Long getAudioRecordId() {
+    public String getAudioRecordId() {
         return audioRecordId;
     }
 
-    public void setAudioRecordId(Long audioRecordId) {
+    public void setAudioRecordId(String audioRecordId) {
         this.audioRecordId = audioRecordId;
     }
 

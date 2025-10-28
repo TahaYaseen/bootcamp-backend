@@ -3,8 +3,12 @@ spring:
     name: voice-to-trace-service
   data:
     mongodb:
-      uri: mongodb://localhost:27017/
+      uri: mongodb://localhost:27017/voice_to_trace
       database: voice_to_trace
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+
 server:
   port: 8081
 
