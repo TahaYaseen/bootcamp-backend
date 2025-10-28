@@ -3,7 +3,14 @@ spring:
     name: voice-to-trace-service
   data:
     mongodb:
-      uri: mongodb://localhost:27017/voice_to_trace
+      # Local connection (commented out)
+      # uri: mongodb://localhost:27017/voice_to_trace
+      # database: voice_to_trace
+
+      # Updated MongoDB Atlas connection with proper auth database
+      # NOTE: Replace <YOUR_DB_PASSWORD> with actual password for Atlas user
+      uri: mongodb+srv://tashaa927_db_user:M1s4Qv9SiUYLS4uw@cluster0.corsib.mongodb.net/voice_to_trace?retryWrites=true&w=majority
+      #authentication-database: admin
       database: voice_to_trace
   autoconfigure:
     exclude:
