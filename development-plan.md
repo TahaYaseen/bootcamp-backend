@@ -1,214 +1,171 @@
-# Voice-to-Trace Assistant — Comprehensive Development Plan
+# DEVELOPMENT PLAN – Voice-to-Trace Assistant (MVP v2.0)
 
-## Architecture Summary
+## 1. Overview
 
-**Pattern:** Modular Monolith  
-**Frontend:** Angular 17.x  
-**Backend:** Spring Boot (Java 17)  
-**Database:** MongoDB Atlas  
-**Speech API:** Google Cloud Speech-to-Text  
-**Deployment:** Frontend on Vercel, Backend on Render  
+The **Voice-to-Trace Assistant** enables agricultural field workers to log harvest and traceability events using voice. The system captures spoken input, converts it to text, interprets the text using NLP to extract relevant field data, generates structured JSON trace records, and transmits them to the Trace API.
 
-**Rationale:**  
-Chosen for simplicity, scalability within MVP constraints, and seamless REST communication. Allows feature-based modules within a single deployable backend service.
+This updated development plan aligns engineering implementation directly with the refined PRD (v2.0, Oct 2025).
 
 ---
 
-## Domain-Driven Module Structure
+## 2. Architecture & Stack
 
-### Backend Modules
-| Module | Purpose |
-|--------|----------|
-| **Auth Module** | Handles JWT-based authentication and authorization |
-| **Voice Module** | Manages audio capture endpoints and integration with Speech API |
-| **NLP Module** | Performs entity extraction (lot, field, action) |
-| **Trace Module** | Generates JSON conforming to Trace schema and syncs via API |
-| **Audit Module** | Maintains full event traceability logs |
-| **Core Module** | Utilities, exception handling, DTOs, configs |
+### **Tech Stack**
+- **Frontend:** Angular 18, TypeScript, TailwindCSS, ShadCN-ui  
+- **Backend:** Spring Boot (Java 11), MongoDB, Google Speech-to-Text API  
+- **APIs:** REST (`/api/v1/...`)  
+- **Deployment:**  
+  - Backend → Render  
+  - Frontend → Vercel  
+- **Authentication:** JWT (Spring Security)  
 
-### Frontend Modules (Angular)
-| Page | Function |
-|------|-----------|
-| **Login Page** | Authenticates Field Worker |
-| **Record Page** | Capture, transcribe, and confirm trace data |
-| **Records Page** | Displays history of submitted events |
-| **Health Check Page** | Checks backend connectivity |
+### **Architecture Pattern**
+- **Modular Monolith**
+  - `/voice-module` = voice capture, upload, transcription endpoints  
+  - `/nlp-module` = NLP + JSON formatting  
+  - `/integration-module` = Trace API sync + retry logic  
 
 ---
 
-## Tactical Sprint Plan
+## 3. Module Structure
 
-### Sprint 0 – Initialization & Scaffolding
-**Goal:** Establish end-to-end runnable baseline environment.  
-**Duration:** 1 week
-
-**Tasks:**
-1. **Repository Setup** – Initialize GitHub repo and connect Angular + Spring Boot skeletons  
-   - *User Input:* GitHub repo URL  
-   - *Action:* Push initial structure  
-2. **Backend Bootstrapping** – Create Spring Boot API with `/api/health` endpoint  
-3. **Frontend Angular Setup** – Generate project with routing, SCSS, and `/health-check` component.  
-4. **Environment Config** – Add `.env` for API URLs and MongoDB connection  
-   - *User Input:* MongoDB Atlas string  
-5. **Deployment Smoke Test** – Deploy initial app (Vercel + Render)  
-6. **Manual Test:** User confirms “Status: ok” UI confirmation.
-
-**Commit:**  
-```
-chore(sprint-0): initialize project structure and baseline setup
-```
+| Module | Key Classes | Description |
+|--------|--------------|-------------|
+| **Audio Module** | `VoiceController`, `AudioRecord`, `SpeechToTextService` | Manages voice recording, uploading, and transcription |
+| **NLP Module** | `TextToJsonService`, `ParsedEvent` model | Parses transcript into domain entities & JSON |
+| **Trace Integration Module** | `TraceRecordService`, `TraceSyncController` | Pushes structured JSON to Trace system using secure API |
+| **Security Module** | `JwtAuthFilter`, `AuthController` | Handles user authentication |
+| **Storage Module** | `Mongo Repositories` | Persistence for Audio, Transcript, ParsedEvent, and TraceRecord |
 
 ---
 
-### Sprint 1 – Authentication & User Identity
-**Goal:** Secure the app using JWT + role-based access.  
-**Duration:** 1 week
+## 4. Development Phases & Sprints
 
-**Tasks:**
-1. Add User entity and repository.  
-2. Implement registration and login in backend.  
-3. Integrate AuthService in Angular with token persistence.  
-4. Protect routes using JWT guards.  
-5. Add login form UI.  
-6. **Manual Test:** User confirms successful login and view restriction.
-
-**Commit:**  
-```
-feat(sprint-1): implement authentication system with JWT login
-```
+### **Sprint 0 – Environment Setup**
+| Task | Description | Notes |
+|------|--------------|-------|
+| 1 | Repository sync with GitHub | Configure project structure |
+| 2 | MongoDB Atlas connection | Confirm DB URL in `.env` |
+| 3 | Google API credential setup | `GOOGLE_APPLICATION_CREDENTIALS` |
+| 4 | Angular + Spring Boot scaffolding | Validate both servers run |
+| 5 | Health Check endpoint | `GET /api/v1/health → {status:"ok"}` |
+| 6 | Documentation setup | Root `README.md` with setup notes |
 
 ---
 
-### Sprint 2 – Voice Capture & Speech-to-Text Integration
-**Goal:** Enable voice input capture and conversion to text.  
-**Duration:** 1.5 weeks
-
-**Tasks:**
-1. Create `/record` endpoint for audio upload (Spring Boot REST).  
-2. Integrate Google Speech-to-Text API for transcription.  
-3. Display transcript preview on frontend.  
-4. Allow manual text correction before save.  
-5. **Manual Test:** User confirms <3s latency and accuracy >90%.
-
-**Commit:**  
-```
-feat(sprint-2): implement voice recording and speech-to-text conversion
-```
+### **Sprint 1 – Voice Capture & Transcription**
+| Task | Description | Acceptance Criteria |
+|------|--------------|----------------------|
+| 1 | Implement audio upload endpoint `/api/v1/voice/record` | Saves file and creates `AudioRecord` |
+| 2 | Integrate Google Speech-to-Text API | Converts stored audio to text |
+| 3 | Create Transcript entity + repository | Stores text + confidence |
+| 4 | Expose `/api/v1/voice/transcribe?recordId` | Returns transcript JSON |
+| 5 | UI buttons for Record, Stop, Upload | Angular app records & submits |
+| 6 | User testing | Verify transcription latency <3s |
 
 ---
 
-### Sprint 3 – NLP Parsing and Entity Detection
-**Goal:** Extract semantic entities (lot, field, action) from transcribed text.  
-**Duration:** 1.5 weeks
-
-**Tasks:**
-1. Design ParsedEvent model.  
-2. Integrate NLP library or custom regex pipeline.  
-3. Render extracted fields for review.  
-4. Accept corrections and re-generate preview.  
-5. **Manual Test:** User verifies correct entity parsing.
-
-**Commit**  
-```
-feat(sprint-3): implement NLP entity extraction and parsing preview
-```
+### **Sprint 2 – NLP & Structured JSON**
+| Task | Description | Acceptance Criteria |
+|------|--------------|----------------------|
+| 1 | Implement `TextToJsonService` | Extracts intent, lot, field, actions |
+| 2 | Add `/api/v1/voice/analyze/{transcriptId}` endpoint | Returns structured JSON |
+| 3 | Frontend “View JSON” preview screen | Show generated trace record |
+| 4 | Add NLP accuracy logs | Track entity extraction success |
+| 5 | Validation workflow | Manual correction on frontend |
+| 6 | Unit testing: NLP edge cases | Achieve ≥90% extraction accuracy |
 
 ---
 
-### Sprint 4 – JSON Record Generation & Trace System Integration
-**Goal:** Generate JSON trace object and sync to Trace API.  
-**Duration:** 1 week
-
-**Tasks:**
-1. Define TraceRecord model and schema compliance validator.  
-2. Create JSON generator service.  
-3. Send generated record via HTTPS with token authentication.  
-4. Retry mechanism on failure.  
-5. **Manual Test:** Confirm JSON ingestion by Trace API.
-
-**Commit:**  
-```
-feat(sprint-4): generate JSON and integrate with Trace ingestion API
-```
+### **Sprint 3 – Trace API Integration**
+| Task | Description | Acceptance Criteria |
+|------|--------------|----------------------|
+| 1 | Develop TraceRecord entity | Stores API payload + status |
+| 2 | Implement sync service `TraceRecordService` | Pushes to external API |
+| 3 | Handle OAuth/Key-based auth | Via `.env` variable |
+| 4 | Retry failed sends | Exponential backoff + max 3 retries |
+| 5 | UI “Sync Status” page | Shows pending/completed events |
+| 6 | Verify successful ingestion | 100% valid records posted |
 
 ---
 
-### Sprint 5 – Audit Logging, QA, and Deployment Hardening
-**Goal:** Complete audit logs, perform debugging, finalize deployment.  
-**Duration:** 1 week
-
-**Tasks:**
-1. Add audit trail for each event (voice → text → JSON → sync).  
-2. Finalize documentation and README updates.  
-3. Performance optimization and error reporting.  
-4. Conduct user acceptance test.  
-5. **Manual Test:** Confirm full workflow success.
-
-**Commit:**  
-```
-chore(sprint-5): finalize audit logging and deploy stable release
-```
+### **Sprint 4 – Authentication & Audit Logging**
+| Task | Description | Acceptance Criteria |
+|------|--------------|----------------------|
+| 1 | JWT Auth for all endpoints | Token in request header |
+| 2 | Role-based login (worker) | Secure `/voice/*` APIs |
+| 3 | Add audit log entries | Audio→Transcript→JSON chain log |
+| 4 | Display user activity logs | Admin panel |
+| 5 | Test with multiple users | Isolated session logs |
 
 ---
 
-## Deployment Strategy
-
-1. **Backend (Render):**
-   - Deploy from branch per sprint (`sprint-0`, `sprint-1`, etc.).
-   - Configure ENV variables:  
-     - `MONGO_URI`, `JWT_SECRET`, `SPEECH_API_KEY`
-2. **Frontend (Vercel):**
-   - Connect to same GitHub repo.  
-   - Setup Angular build (`npm run build`)  
-   - Define `API_BASE_URL` in environment.ts.
+### **Sprint 5 – Deployment & QA**
+| Task | Description | Acceptance Criteria |
+|------|--------------|----------------------|
+| 1 | Configure Render backend deployment | Auto deploy from Git branch |
+| 2 | Configure Vercel frontend preview | Each branch = unique preview URL |
+| 3 | Full regression testing | Validate workflow end-to-end |
+| 4 | Field trial feedback integration | MVP refinement checkpoints |
+| 5 | README updates + API docs | Include endpoint index |
 
 ---
 
-## USER INPUT PROTOCOL
+## 5. Feature Traceability to PRD Requirements
 
-### Required Inputs (Execution Phase)
-| Sprint | Input | Why Needed | Format |
-|---------|--------|-------------|---------|
-| 0 | GitHub Repo URL | For repo sync | `https://github.com/<user>/<repo>.git` |
-| 0 | MongoDB Atlas URI | Database connection | `mongodb+srv://user:pass@cluster.mongodb.net/db` |
-| 2 | Speech API Key | Enable transcription | GCP key string |
-| 4 | Trace API Token | Ingest data securely | `Bearer <token>` |
-
-**Manual Testing Confirmations:**
-- Each sprint includes user confirmation of feature working (functional + UI).
+| PRD Feature | Matching Sprint | Implementation Summary |
+|--------------|------------------|--------------------------|
+| FR-001 – Speech-to-Text | Sprint 1 | `/record` endpoint + API integration |
+| FR-002 – NLP Parsing | Sprint 2 | `TextToJsonService` created |
+| FR-003 – JSON Generation | Sprint 2 | Auto-created JSON schema exporter |
+| FR-004 – Trace API Sync | Sprint 3 | `TraceRecordService` integration |
+| FR-101 – Authentication | Sprint 4 | JWT Security |
+| FR-102 – Audit Logging | Sprint 4 | `AuditEvent` Document + Mongo store |
 
 ---
 
-## Commit & Deployment Validation
+## 6. Deliverables by End of MVP
 
-Each sprint must:
-1. Follow naming convention `sprint-{n}` branch.
-2. Follow commit message format as defined.
-3. Deploy via CI on both platforms.
-4. User confirms via testing checklists.
+✅ Full working chain:  
+**Voice → Text → Parsed Entities → JSON → Trace API Sync**
 
----
+✅ Documented APIs:  
+| Endpoint | Description |
+|-----------|--------------|
+| `POST /api/v1/voice/record` | Upload audio |
+| `POST /api/v1/voice/transcribe` | Convert audio to text |
+| `POST /api/v1/voice/analyze/{id}` | Convert text → JSON |
+| `POST /api/v1/trace/sync` | Push JSON to Trace system |
 
-## Sprint Tracking Summary (for status.md)
-
-| Sprint | Feature Focus | Status | Next |
-|---------|----------------|---------|------|
-| Sprint 0 | Setup & Scaffolding | Pending | Init repo |
-| Sprint 1 | Authentication | Pending | Secure backend |
-| Sprint 2 | Voice-to-Text | Pending | Integrate API |
-| Sprint 3 | NLP Parsing | Pending | Entity extraction |
-| Sprint 4 | JSON & Trace Sync | Pending | API validation |
-| Sprint 5 | Audit & Final QA | Pending | Go Live |
+✅ CI/CD automation  
+✅ Deployments (Vercel + Render)  
+✅ User access with JWT  
+✅ Mongo data persistence  
 
 ---
 
-## Verification Checklist
-- ✅ PRD alignment (feature parity verified)
-- ✅ Technical stack compatibility (Angular + Spring Boot)
-- ✅ Sprint deliverables cover full MVP flow
-- ✅ Deployment tested per sprint
-- ✅ Commit, deployment, and user interaction rules embedded
+## 7. Validation & Testing
+
+| Phase | Test Type | Tool / Method |
+|--------|-------------|----------------|
+| Unit Testing | Service-level | JUnit 5 |
+| Integration | REST endpoints | Postman |
+| UI Testing | Manual browser steps | Angular Dev Server |
+| Regression | CI build hooks | GitHub Actions |
+| Load | 50 concurrent API calls | JMeter |
+
+Success metric:  
+**End-to-end request (record → trace)** executes under 7 seconds | Accuracy ≥ 90%.
 
 ---
 
-*Document prepared for implementation phase following tactical Agile sprints.*
+## 8. Next Steps Beyond MVP
+- DF-001: Multilingual NLP pipeline (Phase 2+ enhancement)  
+- DF-002: Batch sync with offline caching  
+- DF-003: Extended reporting dashboard for compliance  
+
+---
+
+**Last Updated:** October 2025  
+**Aligned To:** Refined PRD 2.0  
+**Prepared By:** Harvey (Development Strategist)  
