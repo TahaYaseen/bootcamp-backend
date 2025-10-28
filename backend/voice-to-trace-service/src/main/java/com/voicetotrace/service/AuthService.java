@@ -35,7 +35,7 @@ public class AuthService {
         }
 
         String encodedPassword = passwordEncoder.encode(password);
-        User user = new User(username, encodedPassword, role);
+        User user = new User(username, encodedPassword, role, username);
         userRepository.save(user);
 
         return "User registered successfully. Please log in.";
